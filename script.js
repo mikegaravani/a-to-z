@@ -1,9 +1,7 @@
+
 // listAZ and listZA MUST CONTAIN ALL LETTERS IN ORDER!!
 
-// global variables: saved capital at half of the game (initially 0)
 let currentMoney = 2500;
-
-// Game CONSTANTS
 let initialMoney = 2500;
 
 
@@ -81,11 +79,84 @@ function displayFirstLetter(isAZ){
     document.getElementById('def').innerHTML = list[0].definition;
 
     // Get word
-    // TODO implement word censoring
-    document.getElementById('guess').innerHTML = list[0].word;
+    document.getElementById('guess').innerHTML = censorWord(list[0].word);
 
     // Highlight initial
     document.getElementById("box" + letter).style.backgroundColor = "rgb(126, 210, 0)";
+}
+
+
+// Add possible options of what's happening
+// currentindex: B=0, B=1, C=2 etc for isAZ=true
+function addOptions(isAZ, currentIndex){
+
+    // TODO if we reached the end (Z), stop
+
+    let list;
+
+    if(isAZ){
+        list = listAZ;
+    }
+    else{
+        list = listZA;
+    }
+
+    const defin = list[currentIndex].definition;
+
+    const rawWord = list[currentIndex].word
+
+    let word = censorWord(rawWord);
+
+
+
+    const handleNext = (event) => pressNext(isAZ, currentIndex, event);
+    const handleLettera = (event) => pressLettera(isAZ, word, event);
+    const handleParola = (event) => pressParola(isAZ, word, event);
+
+    document.addEventListener('keydown', handleNext);
+    document.addEventListener('keydown', handleLettera);
+    document.addEventListener('keydown', handleParola);
+
+    function removeListeners() {
+        document.removeEventListener('keydown', handleNext);
+        document.removeEventListener('keydown', handleLettera);
+        document.removeEventListener('keydown', handleParola);
+    }
+
+    function pressNext(isAZ, currentIndex, event) {
+        
+        if (event.key === 'Enter') {
+            
+            // TODO add next letter
+
+            removeListeners();
+        }
+    }
+
+    function pressLettera(isAZ, word, event) {
+        
+        if (event.key === 'l' || event.key === 'L') {
+
+            word = uncensorLetter(word, rawWord);
+            document.getElementById('guess').innerHTML = word;
+
+            document.removeEventListener('keydown', handleLettera);
+        }
+
+    }
+
+    function pressParola(isAZ, event) {
+        
+        if (event.key === 'p' || event.key === 'P') {
+
+            document.getElementById('guess').innerHTML = rawWord;
+
+            document.removeEventListener('keydown', handleLettera);
+            document.removeEventListener('keydown', handleParola);
+
+        }
+    }
+
 }
 
 
@@ -95,3 +166,8 @@ function displayFirstLetter(isAZ){
 // EXECUTING vvv
 
 gameManager();
+
+// TODO remove this
+function yeet(isAZ){
+    console.log(listAZ[3].definition);
+}
