@@ -5,6 +5,12 @@ let currentMoney = 2500;
 let initialMoney = 2500;
 let timetogoback = false;
 
+// Delay to pass to next question in milliseconds
+const delayNext = 600;
+
+// Time to get from A-Z and Z-A in milliseconds
+const timeToFinish = 5000; // TODO change to 180000
+
 
 // Main function that controls game flow
 function gameManager(){
@@ -18,6 +24,7 @@ function gameManager(){
             if (event.key === 'Enter'){
                 
                 document.removeEventListener('keydown', listener);
+
                 displayLetter(isAZ, 0);
                 
             }
@@ -74,11 +81,11 @@ function setupGame(isAZ){
     }
     else{
 
-        // TODO FIX BUG where if player has $100 but wins AZ round, it shows 2500 instead of 2600
-
+        // This condition should never be reached, I'm keeping it just to make sure
         if(currentMoney < 0){
             currentMoney = 0;
         }
+
         currentMoney = currentMoney + initialMoney;
         convertToBoxes(currentMoney);
     }
@@ -133,7 +140,7 @@ function displayLetter(isAZ, currentIndex){
 
 // Add possible options of what's happening
 // currentindex: B=0, B=1, C=2 etc for isAZ=true
-function addOptions(isAZ, currentIndex){
+async function addOptions(isAZ, currentIndex){
 
     // TODO if we reached the end (Z), stop
 
@@ -146,9 +153,9 @@ function addOptions(isAZ, currentIndex){
         list = listZA;
     }
 
-    const defin = list[currentIndex].definition;
-
     const rawWord = list[currentIndex].word;
+
+    const currLetter = list[currentIndex].letter;
 
     let word = censorWord(rawWord);
 
@@ -168,11 +175,17 @@ function addOptions(isAZ, currentIndex){
         document.removeEventListener('keydown', handleParola);
     }
 
-    function pressNext(isAZ, currentIndex, event) {
+    async function pressNext(isAZ, currentIndex, event) {
         
         if (event.key === 'Enter') {
             
             removeListeners();
+
+            document.getElementById('guess').innerHTML = rawWord;
+
+            await delay(delayNext);
+
+            document.getElementById("box" + currLetter).style.backgroundColor = "rgb(132, 132, 132)";
 
             if(currentIndex+1 < list.length){
 
@@ -191,10 +204,6 @@ function addOptions(isAZ, currentIndex){
                 }
 
             }
-            
-            // TODO show word and ONLY THEN pass to the next one
-
-            // TODO COLOR LETTER BEFORE IN DARK GREY
 
         }
     }
@@ -207,26 +216,25 @@ function addOptions(isAZ, currentIndex){
             console.log('hereLETTER');
 
             if(dashCounter(word) > 0){
-                // TODO convert 100 into a global variable
-                currentMoney = currentMoney - 100;
-            }
+                if(currentMoney - 100 > 0){
+                    // TODO convert 100 into a global variable
+                    currentMoney = currentMoney - 100;
 
-            if(currentMoney < 100){
-                console.log('no more money whats up');
-            }
-            else{
+                    convertToBoxes(currentMoney);
 
-                convertToBoxes(currentMoney);
-
-                word = uncensorLetter(word, rawWord);
-                word = spaceWord(word);
-                document.getElementById('guess').innerHTML = word;
-                document.removeEventListener('keydown', handleLettera);
-                document.removeEventListener('keydown', handleParola);
-                handleLettera = (event) => pressLettera(isAZ, word, event);
-                handleParola = (event) => pressParola(isAZ, word, event);
-                document.addEventListener('keydown', handleLettera);
-                document.addEventListener('keydown', handleParola);
+                    word = uncensorLetter(word, rawWord);
+                    word = spaceWord(word);
+                    document.getElementById('guess').innerHTML = word;
+                    document.removeEventListener('keydown', handleLettera);
+                    document.removeEventListener('keydown', handleParola);
+                    handleLettera = (event) => pressLettera(isAZ, word, event);
+                    handleParola = (event) => pressParola(isAZ, word, event);
+                    document.addEventListener('keydown', handleLettera);
+                    document.addEventListener('keydown', handleParola);
+                }
+                else{
+                    console.log('no more money whats up LETTERA');
+                }
             }
         }
 
@@ -276,6 +284,9 @@ function quitGame(){
     return listener;
 }
 
+function delay(milliseconds) {
+    return new Promise(resolve => setTimeout(resolve, milliseconds));
+}
 
 
 

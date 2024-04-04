@@ -1,10 +1,10 @@
 MAIN THINGS TO DO RN:
 
 - you won/lost screen (end of game)
-- implement change of boxes bg color
+S implement change of boxes bg color
 - timer mechanics still to implement and adjust interactions
-- bug where 100+2500 at Z is 2500 (because letter decreases 100 w/o showing it, and shouldnt do that)
-- CHANGE 'pressnext' (first should show the full word WITHOUT TAKING AWAY MONEY then goes onto the next one)
+S bug where 100+2500 at Z is 2500 (because letter decreases 100 w/o showing it, and shouldnt do that)
+S CHANGE 'pressnext' (first should show the full word WITHOUT TAKING AWAY MONEY then goes onto the next one)
 - timer animation
 - cool !helpful! midgame graphics + more
 - ...
