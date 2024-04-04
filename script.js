@@ -3,19 +3,52 @@
 
 let currentMoney = 2500;
 let initialMoney = 2500;
+let timetogoback = false;
 
 
 // Main function that controls game flow
 function gameManager(){
 
-    let isAZ = true;
+    document.addEventListener('keydown', quitGame());
+
+    // Start the game: ENTER
+    function pressStart(isAZ){
+
+        const listener = function(event){
+            if (event.key === 'Enter'){
+                
+                document.removeEventListener('keydown', listener);
+                displayLetter(isAZ, 0);
+                
+            }
+        }
+
+        return listener;
+    }
+
+    // TODO write this in a neater way
+
+    if(timetogoback === false){
+
+        let isAZ = true;
     
-    setupGame(isAZ); // true = direction to Z
+        setupGame(isAZ); // true = direction to Z
 
-    // Display the A
-    document.addEventListener('keydown', pressStart(isAZ));
+        // Display the A, then B, ...
+        document.addEventListener('keydown', pressStart(isAZ));
 
-    // ...
+    }
+
+    if(timetogoback === true){
+
+        isAZ = false;
+
+        setupGame(isAZ);
+
+        document.addEventListener('keydown', pressStart(isAZ));
+
+    }
+    
 }
 
 // Sets up the game before starting the round
@@ -40,7 +73,14 @@ function setupGame(isAZ){
         convertToBoxes(currentMoney);
     }
     else{
-        convertToBoxes(currentMoney + initialMoney);
+
+        // TODO FIX BUG where if player has $100 but wins AZ round, it shows 2500 instead of 2600
+
+        if(currentMoney < 0){
+            currentMoney = 0;
+        }
+        currentMoney = currentMoney + initialMoney;
+        convertToBoxes(currentMoney);
     }
 }
 
@@ -65,24 +105,29 @@ function convertToBoxes(money) {
 }
 
 // Displays the first letter with its respective definition
-function displayFirstLetter(isAZ){
+function displayLetter(isAZ, currentIndex){
 
-    let letter = 'A';
-    let list = listAZ;
+    let list;
 
-    if (!isAZ){
-        letter = 'Z';
+    if(isAZ){
+        list = listAZ;
+    }
+    else{
         list = listZA;
     }
 
+    let letter = list[currentIndex].letter;
+
     // Get definition
-    document.getElementById('def').innerHTML = list[0].definition;
+    document.getElementById('def').innerHTML = list[currentIndex].definition;
 
     // Get word
-    document.getElementById('guess').innerHTML = censorWord(list[0].word);
+    document.getElementById('guess').innerHTML = censorWord(list[currentIndex].word);
 
     // Highlight initial
     document.getElementById("box" + letter).style.backgroundColor = "rgb(126, 210, 0)";
+
+    addOptions(isAZ, currentIndex);
 }
 
 
@@ -103,15 +148,15 @@ function addOptions(isAZ, currentIndex){
 
     const defin = list[currentIndex].definition;
 
-    const rawWord = list[currentIndex].word
+    const rawWord = list[currentIndex].word;
 
     let word = censorWord(rawWord);
 
 
 
-    const handleNext = (event) => pressNext(isAZ, currentIndex, event);
-    const handleLettera = (event) => pressLettera(isAZ, word, event);
-    const handleParola = (event) => pressParola(isAZ, word, event);
+    let handleNext = (event) => pressNext(isAZ, currentIndex, event);
+    let handleLettera = (event) => pressLettera(isAZ, word, event);
+    let handleParola = (event) => pressParola(isAZ, word, event);
 
     document.addEventListener('keydown', handleNext);
     document.addEventListener('keydown', handleLettera);
@@ -127,9 +172,30 @@ function addOptions(isAZ, currentIndex){
         
         if (event.key === 'Enter') {
             
-            // TODO add next letter
-
             removeListeners();
+
+            if(currentIndex+1 < list.length){
+
+                displayLetter(isAZ, currentIndex + 1);
+
+            }
+            else{
+
+                if (isAZ){
+                    timetogoback = true;
+                    gameManager();
+                }
+                else{
+                    // TODO winning/losing screen
+                    console.log('Game finished!!!');
+                }
+
+            }
+            
+            // TODO show word and ONLY THEN pass to the next one
+
+            // TODO COLOR LETTER BEFORE IN DARK GREY
+
         }
     }
 
@@ -137,26 +203,77 @@ function addOptions(isAZ, currentIndex){
         
         if (event.key === 'l' || event.key === 'L') {
 
-            word = uncensorLetter(word, rawWord);
-            document.getElementById('guess').innerHTML = word;
+            // TODO remove this
+            console.log('hereLETTER');
 
-            document.removeEventListener('keydown', handleLettera);
+            if(dashCounter(word) > 0){
+                // TODO convert 100 into a global variable
+                currentMoney = currentMoney - 100;
+            }
+
+            if(currentMoney < 100){
+                console.log('no more money whats up');
+            }
+            else{
+
+                convertToBoxes(currentMoney);
+
+                word = uncensorLetter(word, rawWord);
+                word = spaceWord(word);
+                document.getElementById('guess').innerHTML = word;
+                document.removeEventListener('keydown', handleLettera);
+                document.removeEventListener('keydown', handleParola);
+                handleLettera = (event) => pressLettera(isAZ, word, event);
+                handleParola = (event) => pressParola(isAZ, word, event);
+                document.addEventListener('keydown', handleLettera);
+                document.addEventListener('keydown', handleParola);
+            }
         }
 
     }
 
-    function pressParola(isAZ, event) {
+    function pressParola(isAZ, word, event) {
         
         if (event.key === 'p' || event.key === 'P') {
 
-            document.getElementById('guess').innerHTML = rawWord;
+            // TODO remove this
+            console.log('hereWORD');
 
-            document.removeEventListener('keydown', handleLettera);
-            document.removeEventListener('keydown', handleParola);
+            const dashes = dashCounter(word);
+            if(dashes > 0){
+                if(currentMoney - (100*dashes) > 0){
+                    // TODO convert 100 into a global variable
+                    currentMoney = currentMoney - (100*dashes);
+
+                    convertToBoxes(currentMoney);
+
+                    document.getElementById('guess').innerHTML = rawWord;
+
+                    document.removeEventListener('keydown', handleLettera);
+                    document.removeEventListener('keydown', handleParola);
+                }
+                else{
+                    console.log('no more money whats up PAROLA VERSION');
+                }
+            }
 
         }
     }
 
+}
+
+function quitGame(){
+
+    const listener = function(event){
+        if (event.key === 'q' || event.key === 'Q'){
+
+            document.removeEventListener('keydown', listener);
+            location.reload();
+            
+        }
+    }
+
+    return listener;
 }
 
 
@@ -164,10 +281,4 @@ function addOptions(isAZ, currentIndex){
 
 
 // EXECUTING vvv
-
 gameManager();
-
-// TODO remove this
-function yeet(isAZ){
-    console.log(listAZ[3].definition);
-}

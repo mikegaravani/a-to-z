@@ -21,7 +21,7 @@ function uncensorLetter(censWord, fullWord){
         }
     }
     if (dashes <= 1){
-        // TODO same effect as if 'PAROLA' was pressed
+        return (fullWord);
     }
 
     // pick a random dash
@@ -71,4 +71,14 @@ function spaceWord(censWord) {
     // Join the array elements into a string and return.
     let result = spacedWord.join('');
     return result.trim();
+}
+
+function dashCounter(word){
+    let dashes = 0;
+    for(let i = 0; i < word.length; i++) {
+        if(word[i] === '-') {
+            dashes++;
+        }
+    }
+    return dashes;
 }
