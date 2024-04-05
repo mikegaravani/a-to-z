@@ -112,7 +112,7 @@ span {
     align-items: center;
 }
 
-.backbar {
+#backbar {
     position: absolute;
     /* JAVASCRIPT vvv */
     width: calc(164/180 * 100%);

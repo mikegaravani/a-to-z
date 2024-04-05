@@ -2,14 +2,22 @@
 // listAZ and listZA MUST CONTAIN ALL LETTERS IN ORDER!!
 
 let currentMoney = 2500;
-let initialMoney = 2500;
+const initialMoney = 2500;
+// TODO camelcase this mf
 let timetogoback = false;
 
+// timeout will be false in A to Z, but true in Z to A
+let timeout = false;
+
+// TODO do stuff with this
+// Boolean that turns true when the game is over
+let isGameOver = false;
+
 // Delay to pass to next question in milliseconds
-const delayNext = 600;
+const delayNext = 550; // TODO change to like 550 idk
 
 // Time to get from A-Z and Z-A in milliseconds
-const timeToFinish = 5000; // TODO change to 180000
+const timeToFinish = 180000; // TODO change to 180000
 
 
 // Main function that controls game flow
@@ -24,6 +32,12 @@ function gameManager(){
             if (event.key === 'Enter'){
                 
                 document.removeEventListener('keydown', listener);
+
+                displayTime();
+                displayBackBar();
+
+                // Start the timer
+                setTimeout(timeRanOut, timeToFinish);
 
                 displayLetter(isAZ, 0);
                 
@@ -73,7 +87,9 @@ function setupGame(isAZ){
     }
 
     // Timer: set to 180 seconds
-    // TODO SET TIMER TO 180
+    document.getElementById('timer').textContent = timeToFinish / 1000;
+    document.getElementById('backbar').style.width = "100%";
+    document.getElementById('backbar').style.backgroundColor = "rgb(168, 234, 127)";
 
     // Jackpot: set to the right amount
     if (isAZ){
@@ -134,13 +150,14 @@ function displayLetter(isAZ, currentIndex){
     // Highlight initial
     document.getElementById("box" + letter).style.backgroundColor = "rgb(126, 210, 0)";
 
-    addOptions(isAZ, currentIndex);
+    addOptions(isAZ, currentIndex, timeout);
 }
 
 
 // Add possible options of what's happening
 // currentindex: B=0, B=1, C=2 etc for isAZ=true
-async function addOptions(isAZ, currentIndex){
+async function addOptions(isAZ, currentIndex, timeoutEmergency){
+
 
     // TODO if we reached the end (Z), stop
 
@@ -185,24 +202,37 @@ async function addOptions(isAZ, currentIndex){
 
             await delay(delayNext);
 
-            document.getElementById("box" + currLetter).style.backgroundColor = "rgb(132, 132, 132)";
-
-            if(currentIndex+1 < list.length){
-
-                displayLetter(isAZ, currentIndex + 1);
-
+            // checking stage of game
+            let keepgoing;
+            if(timeout != isAZ){
+                keepgoing = true;
             }
             else{
+                keepgoing = false;
+            }
 
-                if (isAZ){
-                    timetogoback = true;
-                    gameManager();
+            if(keepgoing){
+
+                document.getElementById("box" + currLetter).style.backgroundColor = "rgb(132, 132, 132)";
+
+                if(currentIndex+1 < list.length){
+
+                    displayLetter(isAZ, currentIndex + 1);
+
                 }
                 else{
-                    // TODO winning/losing screen
-                    console.log('Game finished!!!');
-                }
 
+                    if (isAZ){
+                        timetogoback = true;
+                        timeout = true;
+                        gameManager();
+                    }
+                    else{
+                        // TODO winning/losing screen
+                        console.log('Game finished!!!');
+                    }
+
+                }
             }
 
         }
@@ -268,6 +298,8 @@ async function addOptions(isAZ, currentIndex){
         }
     }
 
+
+
 }
 
 function quitGame(){
@@ -288,6 +320,95 @@ function delay(milliseconds) {
     return new Promise(resolve => setTimeout(resolve, milliseconds));
 }
 
+async function timeRanOut() {
+
+    // TODO change this
+
+    if(!timetogoback){
+
+        await delay(delayNext);
+
+        timeout = true;
+
+        currentMoney = 0;
+
+        console.log('TIME is up');
+
+        timetogoback = true;
+        gameManager();
+
+    }
+    else{
+
+        // TODO final screen
+        console.log('You lost on time lmfao');
+
+        // TODO end everything
+
+    }
+}
+
+function displayTime(){
+
+    let goBack = timetogoback;
+    
+    let timeLeft = timeToFinish / 1000;
+    const displayElement = document.getElementById('timer');
+
+    function updateTimeDisplay() {
+        displayElement.textContent = timeLeft;
+    }
+
+    const countdownInterval = setInterval(() => {
+        timeLeft--;
+        updateTimeDisplay();
+        
+        if (timeLeft <= 0 || goBack != timetogoback) {
+
+            if(goBack != timetogoback){
+                displayElement.textContent = timeToFinish / 1000;
+            }
+
+            clearInterval(countdownInterval);
+            console.log('Time is up FROM INSIDE THE DISPLAYTIME!!');
+        }
+      }, 1000);
+}
+
+function displayBackBar(){
+
+    let goBack = timetogoback;
+
+    let timeLeft = timeToFinish / 100;
+    
+    function updateBackBar(){
+
+        const newWidth = ((timeLeft/(timeToFinish/100)) * 100);
+
+        if (newWidth < 15){
+            document.getElementById('backbar').style.backgroundColor = "rgb(255, 70, 70)";
+        }
+
+        document.getElementById('backbar').style.width = newWidth + '%';
+
+    }
+
+    const countdownInterval = setInterval(() => {
+        timeLeft--;
+        updateBackBar();
+        
+        if (timeLeft <= 0 || goBack != timetogoback) {
+
+            if(goBack != timetogoback){
+                document.getElementById('backbar').style.width = "100%";
+                document.getElementById('backbar').style.backgroundColor = "rgb(168, 234, 127)";
+            }
+
+            clearInterval(countdownInterval);
+            console.log('Time is up FROM BACKBAR!!');
+        }
+      }, 100);
+}
 
 
 
